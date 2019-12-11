@@ -980,7 +980,7 @@ backup:
   env:
   # Example environment variable required for AWS credentials chain
   - name: "AWS_REGION"
-    value: "us-east-1"
+    value: "us-east-2"
   resources:
     requests:
       memory: 1Gi

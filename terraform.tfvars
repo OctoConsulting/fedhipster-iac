@@ -1,4 +1,4 @@
-aws_region="us-east-1"
+aws_region="us-east-2"
 aws_profile="app"
 
 function_bucket_name="bucket-for-lambda-function-5"

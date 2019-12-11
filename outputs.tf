@@ -50,9 +50,10 @@ output "kubeconfig" {
   value = "${local.kubeconfig}"
 }
 
-output "basic_notebook_instance_id" {
-  value = aws_sagemaker_notebook_instance.basic.id
+/* output "basic_notebook_instance_id" {
+   value = aws_sagemaker_notebook_instance.basic.id
 }
+*/
 
 output "aws_vpc" {
   description = "AWS VPC"

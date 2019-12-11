@@ -1,5 +1,5 @@
   provider "aws" {
-    region = "us-east-1"
+    region = "us-east-2"
   }
  
  module "terraform_state_backend" {
@@ -8,6 +8,6 @@
    stage         = "app"
    name          = "tfbackend"
    attributes    = ["state"]
-   region        = "us-east-1"
+   region        = "us-east-2"
    force_destroy = true
  }

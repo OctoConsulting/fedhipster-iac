@@ -50,8 +50,8 @@ echo "All necessary tools installed"
 read -p "Enter AWS Access Key: " AWS_ACCESS_KEY
 read -s -p "Enter AWS Secret Key: " AWS_SECRET_KEY
 printf "\n"
-#read -p "Enter AWS Region (us-east-2 | us-east-1(default)): " AWS_REGION_INPUT
-#AWS_REGION=${AWS_REGION_INPUT:-"us-east-1"}
+#read -p "Enter AWS Region (us-east-2 | us-east-2(default)): " AWS_REGION_INPUT
+#AWS_REGION=${AWS_REGION_INPUT:-"us-east-2"}
 #printf "\n AWS Region: $AWS_REGION"
 #export AWS_DEFAULT_REGION=$AWS_REGION
 #printf "\n"
@@ -61,7 +61,7 @@ printf "\n"
 #read -p "Enter GitHub Repo URL (for example https://github.com/OctoConsulting/app-name): " GITHUB_REPO
 
 ##### Variables #####
-AWS_REGION=us-east-1
+AWS_REGION=us-east-2
 GITHUB_APP=https://github.com/OctoConsulting/emergency-app
 GITHUB_MICRO=https://github.com/OctoConsulting/emergency-micro
 IMAGE_APP=octolabs/fedhipster-app

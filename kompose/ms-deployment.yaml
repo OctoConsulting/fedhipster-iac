@@ -67,7 +67,7 @@ spec:
         - name: SPRING_PROFILES_ACTIVE
           value: prod,swagger
         - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI
-          value: http://ad83f997ccce111e9b35f0eeafed91ec-422244986.us-east-1.elb.amazonaws.com:9080/auth/realms/jhipster
+          value: http://ad83f997ccce111e9b35f0eeafed91ec-422244986.us-east-2.elb.amazonaws.com:9080/auth/realms/jhipster
         - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID
           value: web_app
         - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET
@@ -78,7 +78,7 @@ spec:
               name: bucket-stage
               key: bucket_name
         - name: DEFAULT_REGION
-          value: us-east-1
+          value: us-east-2
         - name: ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
