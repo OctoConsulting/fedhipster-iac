@@ -62,8 +62,8 @@ printf "\n"
 
 ##### Variables #####
 AWS_REGION=us-east-2
-GITHUB_APP=https://github.com/OctoConsulting/emergency-app
-GITHUB_MICRO=https://github.com/OctoConsulting/emergency-micro
+GITHUB_APP=https://github.com/OctoConsulting/fedhipster-template
+GITHUB_MICRO=https://github.com/OctoConsulting/blue-line-micro
 IMAGE_APP=octolabs/fedhipster-app
 IMAGE_MICRO=octolabs/micro
 
