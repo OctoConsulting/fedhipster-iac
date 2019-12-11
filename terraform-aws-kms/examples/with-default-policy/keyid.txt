@@ -1,0 +1,4 @@
+key_alias_arn = arn:aws:kms:ap-southeast-1:626380137312:alias/rs-key
+key_alias_name = alias/rs-key
+key_arn = arn:aws:kms:ap-southeast-1:626380137312:key/fff5930e-1b49-4a0a-86b4-27de478c514a
+key_id = fff5930e-1b49-4a0a-86b4-27de478c514a

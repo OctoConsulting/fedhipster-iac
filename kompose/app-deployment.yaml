@@ -1,0 +1,139 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f app.yml
+    kompose.version: 1.16.0 (0c01309)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: app
+    kube-monkey/enabled: enabled
+    kube-monkey/identifier: app
+    kube-monkey/mtbf: '1'
+    kube-monkey/kill-mode: "fixed"
+    kube-monkey/kill-value: '1'
+  name: app
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: app
+        kube-monkey/enabled: enabled
+        kube-monkey/identifier: app
+        kube-monkey/mtbf: '1'
+        kube-monkey/kill-mode: "fixed"
+        kube-monkey/kill-value: '1'
+    spec:
+      containers:
+      - env:
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          value: http://admin:${jhipster.registry.password}@jhipster-registry.{{NAMESPACE}}.svc.cluster.local:8761/eureka
+        - name: JHIPSTER_SLEEP
+          value: "30"
+        - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+          value: "true"
+        - name: SPRING_CLOUD_CONFIG_URI
+          value: http://admin:${jhipster.registry.password}@jhipster-registry.{{NAMESPACE}}.svc.cluster.local:8761/config
+        - name: SPRING_DATASOURCE_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: rds-{{NAMESPACE}}
+              key: rds_endpoint
+        - name: SPRING_DATASOURCE_DB
+          valueFrom:
+            secretKeyRef:
+              name: rds-{{NAMESPACE}}
+              key: rds_db
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://${SPRING_DATASOURCE_ENDPOINT}:5432/${SPRING_DATASOURCE_DB}
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rds-{{NAMESPACE}}
+              key: rds_username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rds-{{NAMESPACE}}
+              key: rds_password
+        - name: SPRING_DATA_JEST_URI
+          valueFrom:
+            secretKeyRef:
+              name: elastic-{{NAMESPACE}}
+              key: elastic_uri
+        - name: SPRING_ELASTICSEARCH_REST_URIS
+          valueFrom:
+            secretKeyRef:
+              name: elastic-{{NAMESPACE}}
+              key: elastic_uri
+        - name: SPRING_PROFILES_ACTIVE
+          value: prod,swagger
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI
+          value: http://{{KEYCLOAK_URL}}/auth/realms/jhipster
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID
+          value: web_app
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET
+          value: web_app
+        - name: DEFAULT_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: bucket-{{NAMESPACE}}
+              key: bucket_name
+        - name: DEFAULT_REGION
+          value: {{DEFAULT_REGION}}
+        - name: ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-keys
+              key: aws_access
+        - name: ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: aws-keys
+              key: aws_secret
+        - name: KMS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kms-key
+              key: kms_key_id
+        image: {{IMAGE_APP}}
+        name: app
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 750m
+            memory: 3Gi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 20
+          failureThreshold: 300
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 300
+          periodSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - mountPath: /tmp
+          name: temp-dir
+      restartPolicy: Always
+      volumes:
+      - emptyDir: {}
+        name: temp-dir
+status: {}

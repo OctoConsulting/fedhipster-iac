@@ -1,0 +1,294 @@
+variable alias {
+  type    = "list"
+  default = ["DEV", "STAGE", "PROD"]
+}
+
+# Roles
+resource "aws_iam_role" "iam_role_for_lambda" {
+  name = "iam_role_for_lambda"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "lambda_sagemaker" {
+  name = "lambda_sagemaker"
+  path = "/"
+  description = "IAM policy for logging from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:CreateLogGroup"
+      ],
+      "Resource": "arn:aws:logs:*:*:*",
+      "Effect": "Allow"
+    },
+    {
+      "Sid": "VisualEditor0",
+      "Effect": "Allow",
+      "Action": "sagemaker:InvokeEndpoint",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role = "${aws_iam_role.iam_role_for_lambda.name}"
+  policy_arn = "${aws_iam_policy.lambda_sagemaker.arn}"
+}
+
+resource "aws_cloudwatch_log_group" "example" {
+  name              = "/aws/lambda/retrospider_genre_tf"
+  retention_in_days = 14
+}
+
+# Create Lambda funcitons
+# Function Name: genre
+data "archive_file" "genre_lambdazip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_function_src/genre"
+  output_path = "${path.module}/retrospider_genre.zip"
+}
+
+resource "aws_lambda_function" "lambda_genre" {
+  filename      = "${path.module}/retrospider_genre.zip"
+  function_name = "rs_genre"
+  role          = "${aws_iam_role.iam_role_for_lambda.arn}"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.7"
+  timeout       = 10
+  environment {
+    variables = {
+      ENDPOINT_NAME = "retrospider-genre"
+    }
+  }
+  depends_on    = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.example"]
+}
+
+resource "aws_lambda_alias" "genre_aliases" {
+  count            = "${length(var.alias)}"
+  name             = "${element(var.alias, count.index)}"
+  description      = "lambda alias for ${element(var.alias, count.index)}"
+  function_name    = "${aws_lambda_function.lambda_genre.arn}"
+  function_version = "$LATEST"
+}
+
+# Function Name: language
+data "archive_file" "language_lambdazip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_function_src/language"
+  output_path = "${path.module}/retrospider_language.zip"
+}
+
+resource "aws_lambda_function" "lambda_language" {
+  filename      = "${path.module}/retrospider_language.zip"
+  function_name = "rs_language"
+  role          = "${aws_iam_role.iam_role_for_lambda.arn}"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.7"
+  timeout       = 10
+  environment {
+    variables = {
+      ENDPOINT_NAME = "retrospider-language"
+    }
+  }
+  depends_on    = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.example"]
+}
+
+resource "aws_lambda_alias" "language_aliases" {
+  count            = "${length(var.alias)}"
+  name             = "${element(var.alias, count.index)}"
+  description      = "lambda alias for ${element(var.alias, count.index)}"
+  function_name    = "${aws_lambda_function.lambda_language.arn}"
+  function_version = "$LATEST"
+}
+
+# Function Name: SpaCy
+data "archive_file" "spacy_lambdazip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_function_src/spacy"
+  output_path = "${path.module}/retrospider_spacy.zip"
+}
+
+resource "aws_lambda_function" "lambda_spacy" {
+  filename      = "${path.module}/retrospider_spacy.zip"
+  function_name = "rs_spacy"
+  role          = "${aws_iam_role.iam_role_for_lambda.arn}"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.7"
+  timeout       = 30
+  memory_size   = 3008
+  layers        = ["arn:aws:lambda:us-east-1:113088814899:layer:Klayers-python37-spacy:1"]
+}
+
+resource "aws_lambda_alias" "spacy_aliases" {
+  count            = "${length(var.alias)}"
+  name             = "${element(var.alias, count.index)}"
+  description      = "lambda alias for ${element(var.alias, count.index)}"
+  function_name    = "${aws_lambda_function.lambda_spacy.arn}"
+  function_version = "$LATEST"
+}
+
+# Function Name: Sequencematcher
+data "archive_file" "sequencematcher_lambdazip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_function_src/sequencematcher"
+  output_path = "${path.module}/retrospider_sequencematcher.zip"
+}
+
+resource "aws_lambda_function" "lambda_sequencematcher" {
+  filename      = "${path.module}/retrospider_sequencematcher.zip"
+  function_name = "rs_sequencematcher"
+  role          = "${aws_iam_role.iam_role_for_lambda.arn}"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.7"
+}
+
+resource "aws_lambda_alias" "sequencematcher_aliases" {
+  count            = "${length(var.alias)}"
+  name             = "${element(var.alias, count.index)}"
+  description      = "lambda alias for ${element(var.alias, count.index)}"
+  function_name    = "${aws_lambda_function.lambda_sequencematcher.arn}"
+  function_version = "$LATEST"
+}
+
+# Create API to expose lambda functions publicly
+resource "aws_api_gateway_rest_api" "rdso-ml" {
+  name = "rdso-ml"
+}
+
+# Create API endpoints (i.e. resources)
+resource "aws_api_gateway_resource" "rdso-ml_res_genre" {
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  parent_id   = "${aws_api_gateway_rest_api.rdso-ml.root_resource_id}"
+  path_part   = "genre"
+}
+
+resource "aws_api_gateway_resource" "rdso-ml_res_language" {
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  parent_id   = "${aws_api_gateway_rest_api.rdso-ml.root_resource_id}"
+  path_part   = "language"
+}
+
+resource "aws_api_gateway_resource" "rdso-ml_res_spacy" {
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  parent_id   = "${aws_api_gateway_rest_api.rdso-ml.root_resource_id}"
+  path_part   = "spacy"
+}
+
+resource "aws_api_gateway_resource" "rdso-ml_res_sequencematcher" {
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  parent_id   = "${aws_api_gateway_rest_api.rdso-ml.root_resource_id}"
+  path_part   = "sequencematcher"
+}
+
+# Set up HTTP method to generate API response
+module "genre_post" {
+  source      = "./api"
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  resource_id = "${aws_api_gateway_resource.rdso-ml_res_genre.id}"
+  method      = "POST"
+  path        = "${aws_api_gateway_resource.rdso-ml_res_genre.path}"
+  lambda      = "${aws_lambda_function.lambda_genre.function_name}"
+  region      = "${var.aws_region}"
+  account_id  = "${data.aws_caller_identity.current.account_id}"
+}
+
+module "language_post" {
+  source      = "./api"
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  resource_id = "${aws_api_gateway_resource.rdso-ml_res_language.id}"
+  method      = "POST"
+  path        = "${aws_api_gateway_resource.rdso-ml_res_language.path}"
+  lambda      = "${aws_lambda_function.lambda_language.function_name}"
+  region      = "${var.aws_region}"
+  account_id  = "${data.aws_caller_identity.current.account_id}"
+}
+
+module "spacy_post" {
+  source      = "./api"
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  resource_id = "${aws_api_gateway_resource.rdso-ml_res_spacy.id}"
+  method      = "POST"
+  path        = "${aws_api_gateway_resource.rdso-ml_res_spacy.path}"
+  lambda      = "${aws_lambda_function.lambda_spacy.function_name}"
+  region      = "${var.aws_region}"
+  account_id  = "${data.aws_caller_identity.current.account_id}"
+}
+
+module "sequencematcher_post" {
+  source      = "./api"
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  resource_id = "${aws_api_gateway_resource.rdso-ml_res_sequencematcher.id}"
+  method      = "POST"
+  path        = "${aws_api_gateway_resource.rdso-ml_res_sequencematcher.path}"
+  lambda      = "${aws_lambda_function.lambda_sequencematcher.function_name}"
+  region      = "${var.aws_region}"
+  account_id  = "${data.aws_caller_identity.current.account_id}"
+}
+
+# Deploy the API
+
+resource "aws_api_gateway_deployment" "retrospider_api_dev" {
+  depends_on  = ["module.genre_post", "module.language_post", "module.spacy_post", "module.sequencematcher_post"]
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  stage_name  = "${lower(element(var.alias, 0))}"
+  variables   = {
+    "lambdaAlias" = "${element(var.alias, 0)}"
+    "deployed_at" = "${timestamp()}"
+  }
+}
+
+resource "aws_api_gateway_deployment" "retrospider_api_stage" {
+  depends_on  = ["aws_api_gateway_deployment.retrospider_api_dev"]
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  stage_name  = "${lower(element(var.alias, 1))}"
+  variables   = {
+    "lambdaAlias" = "${element(var.alias, 1)}"
+    "deployed_at" = "${timestamp()}"
+  }
+}
+
+resource "aws_api_gateway_deployment" "retrospider_api_prod" {
+  depends_on  = ["aws_api_gateway_deployment.retrospider_api_stage"]
+  rest_api_id = "${aws_api_gateway_rest_api.rdso-ml.id}"
+  stage_name  = "${lower(element(var.alias, 2))}"
+  variables   = {
+    "lambdaAlias" = "${element(var.alias, 2)}"
+    "deployed_at" = "${timestamp()}"
+  }
+}
+
+# Output API endpoints
+output "retro_api_prod_url" {
+  value = "${aws_api_gateway_deployment.retrospider_api_prod.invoke_url}"
+}
+
+output "retro_api_stage_url" {
+  value = "${aws_api_gateway_deployment.retrospider_api_stage.invoke_url}"
+}
+
+output "retro_api_dev_url" {
+  value = "${aws_api_gateway_deployment.retrospider_api_dev.invoke_url}"
+}

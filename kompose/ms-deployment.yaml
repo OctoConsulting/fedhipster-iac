@@ -1,0 +1,110 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f app.yml
+    kompose.version: 1.16.0 (0c01309)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ms
+  name: ms
+spec:
+  minReadySeconds: 60
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: ms
+    spec:
+      containers:
+      - env:
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          value: http://admin:${jhipster.registry.password}@jhipster-registry.stage.svc.cluster.local:8761/eureka
+        - name: JHIPSTER_SLEEP
+          value: "30"
+        - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+          value: "true"
+        - name: SPRING_CLOUD_CONFIG_URI
+          value: http://admin:${jhipster.registry.password}@jhipster-registry.stage.svc.cluster.local:8761/config
+        - name: SPRING_DATASOURCE_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: rds-stage
+              key: rds_endpoint
+        - name: SPRING_DATASOURCE_DB
+          valueFrom:
+            secretKeyRef:
+              name: rds-stage
+              key: rds_db
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://${SPRING_DATASOURCE_ENDPOINT}:5432/${SPRING_DATASOURCE_DB}
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rds-stage
+              key: rds_username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rds-stage
+              key: rds_password
+        - name: SPRING_DATA_JEST_URI
+          valueFrom:
+            secretKeyRef:
+              name: elastic-stage
+              key: elastic_uri
+        - name: SPRING_ELASTICSEARCH_REST_URIS
+          valueFrom:
+            secretKeyRef:
+              name: elastic-stage
+              key: elastic_uri
+        - name: SPRING_PROFILES_ACTIVE
+          value: prod,swagger
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI
+          value: http://ad83f997ccce111e9b35f0eeafed91ec-422244986.us-east-1.elb.amazonaws.com:9080/auth/realms/jhipster
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID
+          value: web_app
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET
+          value: web_app
+        - name: DEFAULT_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: bucket-stage
+              key: bucket_name
+        - name: DEFAULT_REGION
+          value: us-east-1
+        - name: ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-keys
+              key: aws_access
+        - name: ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: aws-keys
+              key: aws_secret
+        image: sonimehul/app-image:latest
+        name: ms
+        ports:
+        - containerPort: 8081
+        resources:
+          limits:
+            cpu: 750m
+            memory: 3Gi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+        volumeMounts:
+        - mountPath: /tmp
+          name: temp-dir
+      restartPolicy: Always
+      volumes:
+      - emptyDir: {}
+        name: temp-dir
+status: {}

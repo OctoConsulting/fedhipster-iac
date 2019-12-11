@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  api_url: aHR0cHM6Ly92cnpkcGN1bDlmLmV4ZWN1dGUtYXBpLnVzLWVhc3QtMi5hbWF6b25hd3MuY29tL2Rldg==
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: lambda-dev
+  selfLink: /api/v1/namespaces/dev/secrets/lambda-dev
+type: Opaque

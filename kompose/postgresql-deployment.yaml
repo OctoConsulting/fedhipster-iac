@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f app.yml
+    kompose.version: 1.16.0 (0c01309)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: app-postgresql
+  name: app-postgresql
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: app-postgresql
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_PASSWORD
+        - name: POSTGRES_USER
+          value: retrospider
+        image: postgres:11.2
+        name: app-postgresql
+        ports:
+        - containerPort: 5432
+        resources: {}
+      restartPolicy: Always
+status: {}

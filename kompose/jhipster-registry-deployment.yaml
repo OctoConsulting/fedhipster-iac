@@ -1,0 +1,58 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f app.yml
+    kompose.version: 1.16.0 (0c01309)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: jhipster-registry
+  name: jhipster-registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: jhipster-registry
+    spec:
+      containers:
+      - env:
+        - name: JHIPSTER_REGISTRY_PASSWORD
+          value: admin
+        - name: SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_SEARCH_LOCATIONS
+          value: file:./central-config/localhost-config/
+        - name: SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_SEARCH_LOCATIONS
+          value: file:./central-config/docker-config/
+        - name: SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_TYPE
+          value: native
+        - name: SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_TYPE
+          value: native
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev,swagger,oauth2
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI
+          value: http://{{KEYCLOAK_URL}}/auth/realms/jhipster
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID
+          value: jhipster-registry
+        - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET
+          value: jhipster-registry
+        - name: SPRING_SECURITY_USER_PASSWORD
+          value: admin
+        - name: _JAVA_OPTIONS
+          value: -Xmx512m -Xms256m
+        image: jhipster/jhipster-registry:v5.0.0
+        name: jhipster-registry
+        ports:
+        - containerPort: 8761
+        resources: {}
+        volumeMounts:
+        - mountPath: /central-config
+          name: jhipster-registry-claim0
+      restartPolicy: Always
+      volumes:
+      - name: jhipster-registry-claim0
+        persistentVolumeClaim:
+          claimName: jhipster-registry-claim0
+status: {}
