@@ -37,12 +37,17 @@ if [ ! -x $(command -v createdb) ]; then
   brew link --force libpq
   brew install jq
 fi
+
 if [ ! -x $(command -v wget) ];                  then brew install wget; fi
 if [ ! -x $(command -v aws) ];                   then brew install awscli; fi
 if [ ! -x $(command -v aws-iam-authenticator) ]; then brew install aws-iam-authenticator; fi
 if [ ! -x $(command -v terraform) ];             then brew install terraform; fi
 if [ ! -x $(command -v kubectl) ];               then brew install kubernetes-cli; fi
-if [ ! -x $(command -v helm) ];                  then brew install kubernetes-helm; fi
+
+#Uninstall Helm3, if any, just to make sure we are not using Helm v3, we need Helm v2
+brew uninstall kubernetes-helm
+brew install helm@2
+
 
 echo "All necessary tools installed"
 
@@ -50,11 +55,11 @@ echo "All necessary tools installed"
 read -p "Enter AWS Access Key: " AWS_ACCESS_KEY
 read -s -p "Enter AWS Secret Key: " AWS_SECRET_KEY
 printf "\n"
-#read -p "Enter AWS Region (us-east-2 | us-east-2(default)): " AWS_REGION_INPUT
-#AWS_REGION=${AWS_REGION_INPUT:-"us-east-2"}
-#printf "\n AWS Region: $AWS_REGION"
-#export AWS_DEFAULT_REGION=$AWS_REGION
-#printf "\n"
+read -p "Enter AWS Region (us-east-2 | us-east-2(default)): " AWS_REGION_INPUT
+AWS_REGION=${AWS_REGION_INPUT:-"us-east-2"}
+printf "\n AWS Region: $AWS_REGION"
+export AWS_DEFAULT_REGION=$AWS_REGION
+printf "\n"
 read -p "Enter GitHub username (not email) with access to repo: " GITHUB_USER
 read -s -p "Enter password for GitHub user: " GITHUB_PASS
 printf "\n"
@@ -104,10 +109,10 @@ kubectl create rolebinding default-role \
   --serviceaccount=default:default
 
 ##### KMS Terraform #####
-cd ./terraform-aws-kms/examples/with-default-policy
-terraform init
-terraform apply --auto-approve
-cd ../../..
+# cd ./terraform-aws-kms/examples/with-default-policy
+# terraform init
+# terraform apply --auto-approve
+# cd ../../..
 
 ##### CI/CD #####
 cd ./cicd/
