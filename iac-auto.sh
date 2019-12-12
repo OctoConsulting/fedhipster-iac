@@ -153,8 +153,8 @@ do
     --from-literal=elastic_uri=https://$(terraform output domain_endpoint_${NAMESPACE})
 
   #Create secrets for API Gateway URLs
-  kubectl -n ${NAMESPACE} create secret generic lambda-${NAMESPACE} \
-    --from-literal=api_url=$(terraform output retro_api_${NAMESPACE}_url)
+  # kubectl -n ${NAMESPACE} create secret generic lambda-${NAMESPACE} \
+  #   --from-literal=api_url=$(terraform output retro_api_${NAMESPACE}_url)
 
   #S3 bucket names
   kubectl -n ${NAMESPACE} create secret generic bucket-${NAMESPACE} \
@@ -168,10 +168,10 @@ do
     --clusterrole=cluster-admin \
     --serviceaccount=default:default \
 
-  cd ./terraform-aws-kms/examples/with-default-policy
-  kubectl -n ${NAMESPACE} create secret generic kms-key \
-    --from-literal=kms_key_id=$(terraform output key_id)
-  cd ../../..
+  # cd ./terraform-aws-kms/examples/with-default-policy
+  # kubectl -n ${NAMESPACE} create secret generic kms-key \
+  #   --from-literal=kms_key_id=$(terraform output key_id)
+  # cd ../../..
 
   #Install and setup initial environments
   cd ./kompose/
