@@ -8,9 +8,9 @@
     config.toml: |
       [kubemonkey]
       #dry_run = true
-      run_hour = 10                           # Run scheduling at 8am on weekdays
-      start_hour = 11                          # Don't schedule any pod deaths before 10am
-      end_hour = 12                            # Don't schedule any pod deaths after 4pm
+      run_hour = 10                           # Run scheduling at 10 am on weekdays
+      start_hour = 11                          # Don't schedule any pod deaths before 11 am
+      end_hour = 12                            # Don't schedule any pod deaths after 12 pm
       blacklisted_namespaces = ["kube-system"] # Critical apps live here
       whitelisted_namespaces = ["dev"]
       time_zone = "America/New_York"
