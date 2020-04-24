@@ -8,7 +8,7 @@ GITHUB_PASS=$6
 IMAGE_REPO=$7
 GITHUB_APP=$8
 GITHUB_MICRO=$9
-AWS_REGION=$10
+AWS_REGION=${10}
 
 mv credentials.xml credentials-tmp.xml
 cat credentials-tmp.xml | sed "s|{{AWS_ACCESS_KEY}}|$AWS_ACCESS_KEY|g; \
@@ -32,7 +32,7 @@ helm install --namespace $NAMESPACE --name $HELM_RELEASE-jenkins stable/jenkins 
 --set master.installPlugins[1]=workflow-job:2.33 \
 --set master.installPlugins[2]=workflow-aggregator:2.6 \
 --set master.installPlugins[3]=credentials-binding:1.19 \
---set master.installPlugins[4]=git:3.11.0 \
+--set master.installPlugins[4]=git:4.2.2 \
 --set master.installPlugins[5]=amazon-ecr:1.6 \
 --set master.installPlugins[6]=htmlpublisher:1.18 \
 --set master.installPlugins[7]=github-oauth:0.33 \

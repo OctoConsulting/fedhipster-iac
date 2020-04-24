@@ -109,10 +109,10 @@ kubectl create rolebinding default-role \
   --serviceaccount=default:default
 
 ##### KMS Terraform #####
-# cd ./terraform-aws-kms/examples/with-default-policy
-# terraform init
-# terraform apply --auto-approve
-# cd ../../..
+cd ./terraform-aws-kms/examples/with-default-policy
+terraform init
+terraform apply --auto-approve
+cd ../../..
 
 ##### CI/CD #####
 cd ./cicd/
@@ -168,10 +168,10 @@ do
     --clusterrole=cluster-admin \
     --serviceaccount=default:default \
 
-  # cd ./terraform-aws-kms/examples/with-default-policy
-  # kubectl -n ${NAMESPACE} create secret generic kms-key \
-  #   --from-literal=kms_key_id=$(terraform output key_id)
-  # cd ../../..
+  cd ./terraform-aws-kms/examples/with-default-policy
+  kubectl -n ${NAMESPACE} create secret generic kms-key \
+     --from-literal=kms_key_id=$(terraform output key_id)
+  cd ../../..
 
   #Install and setup initial environments
   cd ./kompose/
