@@ -64,6 +64,7 @@ read -p "Enter GitHub username (not email) with access to repo: " GITHUB_USER
 read -s -p "Enter password for GitHub user: " GITHUB_PASS
 printf "\n"
 #read -p "Enter GitHub Repo URL (for example https://github.com/OctoConsulting/app-name): " GITHUB_REPO
+read -p "Enter GitHub Repo URL (for example https://github.com/OctoConsulting/app-name): " GITHUB_REPO
 
 ##### Variables #####
 AWS_REGION=us-east-2
@@ -116,9 +117,9 @@ cd ../../..
 
 ##### CI/CD #####
 cd ./cicd/
-helm init --service-account tiller
+/usr/local/opt/helm@2/bin/helm init --service-account tiller
 kubectl -n kube-system rollout status deploy/tiller-deploy
-helm repo update
+/usr/local/opt/helm@2/bin/helm repo update
 sleep 30
 chmod u+x *.sh
 ./cicd-startup.sh default cicd \

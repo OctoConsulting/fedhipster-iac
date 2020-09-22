@@ -1,5 +1,5 @@
 resource "aws_iam_role" "eks-cluster" {
-  name = "eks-cluster-app"
+  name               = "eks-cluster-app"
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -53,7 +53,7 @@ resource "aws_security_group_rule" "eks-cluster-ingress-node-https" {
 
 resource "aws_eks_cluster" "eks" {
   name     = "${var.cluster-name}"
-  version  = "1.13"
+  version  = "1.16"
   role_arn = "${aws_iam_role.eks-cluster.arn}"
   vpc_config {
     security_group_ids = ["${aws_security_group.eks-cluster.id}"]
